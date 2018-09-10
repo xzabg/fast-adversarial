@@ -647,15 +647,20 @@ class ASDNPretrainDataLayer(caffe.Layer):
         rep_num = int(np.ceil(float(pool_len) / float(drop_stride)))
         #rep_num_area = rep_num * rep_num
 	#rep_num = 2
-	rep_num_area = 5
+	rep_num_area = 4
 
-	sel_num = random.sample(range(16),4)
-	#print "sel_num:",sel_num
+	sel_num2 = random.sample(range(4),1)
+	sel_num3 = random.sample(range(9),1)
+	sel_num4 = random.sample(range(16),1)
+	sel_num = [sel_num2[0] ,sel_num3[0] ,sel_num4[0]]
+	print "sel_num:",sel_num[1]
+	
+        drop_width2 = int(np.ceil(float(pool_len) / 2))
+        drop_width3 = int(np.ceil(float(pool_len) / 3))
+        drop_width4 = int(np.ceil(float(pool_len) / 4))
 
-	rep_width = int(np.ceil(float(pool_len) / float(rep_num)))
-
+	print "drop_width:",drop_width2,drop_width3,drop_width4
         conv_feat_rep = np.zeros((sample_num * rep_num_area, channels, pool_len, pool_len))
-        #conv_feat_mask = np.zeros((sample_num * rep_num_area, 1, pool_len, pool_len))
 	labels_final = np.zeros(sample_num * rep_num_area)
 	bbox_targets_final = np.zeros((sample_num * rep_num_area, final_len))
 	inside_weights_final = np.zeros((sample_num * rep_num_area, final_len))
@@ -663,10 +668,58 @@ class ASDNPretrainDataLayer(caffe.Layer):
 
         cnt = 0 
 
-        for i in range(2):
-            for j in range(2):
-	        
-		sel_now = sel_num[i+j]
+
+        #for i in range(1):
+        for j in range(3):
+	    sel_now = sel_num[j]
+	    if j == 0:
+	        if sel_now <= 1:
+		    sel_x = 0
+		    sel_y = sel_now - sel_x
+		else:
+		    sel_x = 1
+		    sel_y = sel_now - 2
+                now_feat = np.copy(conv_feat)
+                startx = sel_x * drop_width2
+                starty = sel_y * drop_width2
+                if startx + drop_width2 > pool_len:
+                    startx = startx - 1
+                if starty + drop_width2 > pool_len:
+                    starty = starty - 1
+                endx = np.min( (startx + drop_width2, pool_len) )
+                endy = np.min( (starty + drop_width2, pool_len) )
+                now_feat[:, :, startx: endx, starty: endy] = now_feat[:, :, startx: endx, starty: endy] * 0.0
+                conv_feat_rep[cnt * sample_num: cnt * sample_num + sample_num, :, :, :] = np.copy(now_feat)
+                labels_final[cnt * sample_num: cnt * sample_num + sample_num] = np.copy(labels)
+                bbox_targets_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(bbox_targets)
+                inside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(inside_weights)
+                outside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(outside_weights)
+	    elif j== 1:
+	        if sel_now <= 2:
+		    sel_x = 0
+		    sel_y = sel_now - sel_x
+		elif sel_now <= 5:
+		    sel_x = 1
+		    sel_y = sel_now - 3
+		elif:
+		    sel_x = 2
+		    sel_y = sel_now - 6
+                now_feat = np.copy(conv_feat)
+                startx = sel_x * drop_width3
+                starty = sel_y * drop_width3
+                if startx + drop_width3 > pool_len:
+                    startx = startx - 1
+                if starty + drop_width3 > pool_len:
+                    starty = starty - 1
+                endx = np.min((startx + drop_width3, pool_len))
+                endy = np.min((starty + drop_width3, pool_len))
+                now_feat[:, :, startx: endx, starty: endy] = now_feat[:, :, startx: endx, starty: endy] * 0.0
+                conv_feat_rep[cnt * sample_num: cnt * sample_num + sample_num, :, :, :] = np.copy(now_feat)
+                labels_final[cnt * sample_num: cnt * sample_num + sample_num] = np.copy(labels)
+                bbox_targets_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(bbox_targets)
+                inside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(inside_weights)
+                outside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(outside_weights)
+	    elif:
 		#print "sel_now:",sel_now
 		if sel_now <= 3:
 		    sel_x = 0
@@ -680,29 +733,22 @@ class ASDNPretrainDataLayer(caffe.Layer):
 		else:
 		    sel_x = 3
 		    sel_y = sel_now -12
-
                 now_feat = np.copy(conv_feat)
-
-                startx = sel_x * drop_stride
-                starty = sel_y * drop_stride
-
-                if startx + drop_size > pool_len: 
+                startx = sel_x * drop_width4
+                starty = sel_y * drop_width4
+                if startx + drop_width4 > pool_len:
                     startx = startx - 1
-                if starty + drop_size > pool_len:
+                if starty + drop_width4 > pool_len:
                     starty = starty - 1
-
-                endx   = np.min( (startx + drop_size, pool_len) )
-                endy   = np.min( (starty + drop_size, pool_len) )
-
-                now_feat[:,:, startx : endx, starty : endy ] = now_feat[:,:, startx : endx, starty : endy ] * 0.0
-                conv_feat_rep[ cnt * sample_num : cnt * sample_num + sample_num, :, :, : ] = np.copy(now_feat)
-
-		labels_final[cnt * sample_num : cnt * sample_num + sample_num] = np.copy(labels)
-		bbox_targets_final[cnt * sample_num : cnt * sample_num + sample_num, :] = np.copy(bbox_targets)
-		inside_weights_final[cnt * sample_num : cnt * sample_num + sample_num, :] = np.copy(inside_weights)
-		outside_weights_final[cnt * sample_num : cnt * sample_num + sample_num, :] = np.copy(outside_weights)
-
-                cnt = cnt + 1
+                endx = np.min((startx + drop_width4, pool_len))
+                endy = np.min((starty + drop_width4, pool_len))
+                now_feat[:, :, startx: endx, starty: endy] = now_feat[:, :, startx: endx, starty: endy] * 0.0
+                conv_feat_rep[cnt * sample_num: cnt * sample_num + sample_num, :, :, :] = np.copy(now_feat)
+                labels_final[cnt * sample_num: cnt * sample_num + sample_num] = np.copy(labels)
+                bbox_targets_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(bbox_targets)
+                inside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(inside_weights)
+                outside_weights_final[cnt * sample_num: cnt * sample_num + sample_num, :] = np.copy(outside_weights)
+            cnt = cnt + 1
 	now_feat = np.copy(conv_feat)
 	conv_feat_rep[ cnt * sample_num : cnt * sample_num + sample_num, :, :, : ] = np.copy(now_feat)
 	labels_final[cnt * sample_num : cnt * sample_num + sample_num] = np.copy(labels)
