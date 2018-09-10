@@ -45,17 +45,17 @@ LOG="experiments/logs/fast_rcnn_std.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
-#time ./tools/train_net.py --gpu ${GPU_ID} \
-  #--solver models/${PT_DIR}/${NET}/fast_rcnn_std/solver.prototxt \
-  #--weights  data/imagenet_models/${NET}.v2.caffemodel \
-  #--imdb ${TRAIN_IMDB} \
-  #--iters ${ITERS} \
-  #--cfg experiments/cfgs/fast_rcnn_adv_128.yml \
-  #${EXTRA_ARGS}
+time ./tools/train_net.py --gpu ${GPU_ID} \
+  --solver models/${PT_DIR}/${NET}/fast_rcnn_std/solver.prototxt \
+  --weights  output/fast_rcnn_adv/voc_2007_trainval/fast_rcnn_2-2-ran-mask_iter_15000.caffemodel \
+  --imdb ${TRAIN_IMDB} \
+  --iters ${ITERS} \
+  --cfg experiments/cfgs/fast_rcnn_adv_128.yml \
+  ${EXTRA_ARGS}
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
    --def models/${PT_DIR}/${NET}/fast_rcnn/test.prototxt \
-   --net output/fast_rcnn_adv/voc_2007_trainval/fast_rcnn_2-2-mask_iter_5000.caffemodel \
+   --net output/fast_rcnn_adv/voc_2007_trainval/fast_rcnn_2-2-ran-mask_iter_15000.caffemodel \
    --imdb ${TEST_IMDB} \
    --cfg experiments/cfgs/fast_rcnn_adv_128.yml \
    --num_dets 2000 \

@@ -8,7 +8,7 @@
 
 RoIDataLayer implements a Caffe Python layer.
 """
-
+import random
 import caffe
 from fast_rcnn.config import cfg
 from roi_data_layer.minibatch import get_minibatch, get_allrois_minibatch, get_ohem_minibatch, get_ohem_minibatch_ratio
@@ -644,10 +644,13 @@ class ASDNPretrainDataLayer(caffe.Layer):
         drop_size  = self._drop_size
         drop_stride = self._drop_stride
 
-        #rep_num = int(np.ceil(float(pool_len) / float(drop_stride)))
+        rep_num = int(np.ceil(float(pool_len) / float(drop_stride)))
         #rep_num_area = rep_num * rep_num
-	rep_num = 2
+	#rep_num = 2
 	rep_num_area = 5
+
+	sel_num = random.sample(range(16),4)
+	#print "sel_num:",sel_num
 
 	rep_width = int(np.ceil(float(pool_len) / float(rep_num)))
 
@@ -660,21 +663,36 @@ class ASDNPretrainDataLayer(caffe.Layer):
 
         cnt = 0 
 
-        for i in range(rep_num):
-            for j in range(rep_num):
+        for i in range(2):
+            for j in range(2):
+	        
+		sel_now = sel_num[i+j]
+		#print "sel_now:",sel_now
+		if sel_now <= 3:
+		    sel_x = 0
+		    sel_y = sel_now - sel_x
+		elif sel_now <= 7:
+		    sel_x = 1
+		    sel_y = sel_now - 4
+		elif sel_now <= 11:
+		    sel_x = 2
+		    sel_y = sel_now - 8
+		else:
+		    sel_x = 3
+		    sel_y = sel_now -12
 
                 now_feat = np.copy(conv_feat)
 
-                startx = i * rep_width
-                starty = j * rep_width
+                startx = sel_x * drop_stride
+                starty = sel_y * drop_stride
 
-                if startx + rep_width > pool_len: 
+                if startx + drop_size > pool_len: 
                     startx = startx - 1
-                if starty + rep_width > pool_len:
+                if starty + drop_size > pool_len:
                     starty = starty - 1
 
-                endx   = np.min( (startx + rep_width, pool_len) )
-                endy   = np.min( (starty + rep_width, pool_len) )
+                endx   = np.min( (startx + drop_size, pool_len) )
+                endy   = np.min( (starty + drop_size, pool_len) )
 
                 now_feat[:,:, startx : endx, starty : endy ] = now_feat[:,:, startx : endx, starty : endy ] * 0.0
                 conv_feat_rep[ cnt * sample_num : cnt * sample_num + sample_num, :, :, : ] = np.copy(now_feat)

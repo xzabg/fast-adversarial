@@ -12,5 +12,5 @@ weight_decay: 0.0005
 # function
 snapshot: 0
 # We still use the snapshot prefix, though
-snapshot_prefix: "fast_rcnn_2-2-mask"
+snapshot_prefix: "fast_rcnn_2-2-ran-mask_iter_15000+"
 #debug_info: true
